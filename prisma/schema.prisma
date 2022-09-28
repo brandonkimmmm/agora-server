@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider      = "prisma-client-js"
+    binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+enum Role {
+    USER  @map("user")
+    ADMIN @map("admin")
+
+    @@map("_role")
+}
+
+model User {
+    id         Int       @id @default(autoincrement())
+    email      String    @unique @db.VarChar(255)
+    username   String    @db.VarChar(255)
+    password   String    @db.VarChar(255)
+    first_name String    @db.VarChar(255)
+    last_name  String    @db.VarChar(255)
+    role       Role      @default(USER)
+    created_at DateTime  @default(now())
+    updated_at DateTime  @updatedAt
+    topics     Topic[]
+    posts      Post[]
+    comments   Comment[]
+
+    @@map("users")
+}
+
+model Topic {
+    id          Int      @id @default(autoincrement())
+    title       String   @db.VarChar(255)
+    description String   @db.VarChar(255)
+    created_at  DateTime @default(now())
+    updated_at  DateTime @updatedAt
+    user_id     Int
+    user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    posts       Post[]
+
+    @@map("topics")
+}
+
+model Post {
+    id         Int       @id @default(autoincrement())
+    title      String    @db.VarChar(255)
+    body       String
+    created_at DateTime  @default(now())
+    updated_at DateTime  @updatedAt
+    user_id    Int
+    user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    topic_id   Int
+    topic      Topic     @relation(fields: [topic_id], references: [id], onDelete: Cascade)
+    comments   Comment[]
+
+    @@map("posts")
+}
+
+model Comment {
+    id         Int      @id @default(autoincrement())
+    body       String
+    created_at DateTime @default(now())
+    updated_at DateTime @updatedAt
+    user_id    Int
+    user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    post_id    Int
+    post       Post     @relation(fields: [post_id], references: [id], onDelete: Cascade)
+
+    @@map("comments")
+}
