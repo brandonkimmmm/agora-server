@@ -22,6 +22,13 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
         });
     }
 
+    generatePaginationQuery(limit: number, page: number) {
+        return {
+            take: limit,
+            skip: limit * (page - 1)
+        };
+    }
+
     async onModuleInit() {
         await this.$connect();
         this.logger.log('onModuleInit prisma connected');
