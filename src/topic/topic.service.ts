@@ -28,12 +28,14 @@ export class TopicService {
 
     async createTopic(
         reqUser: SerializedUser,
-        { title, description }: PostTopicDTO
+        { title, description, display_title, image_url }: PostTopicDTO
     ) {
         return this.prismaService.topic.create({
             data: {
                 title,
                 description,
+                display_title: display_title || title,
+                image_url,
                 user: {
                     connect: {
                         id: reqUser.id
