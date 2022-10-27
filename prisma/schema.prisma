@@ -30,14 +30,16 @@ model User {
 }
 
 model Topic {
-    id          Int      @id @default(autoincrement())
-    title       String
-    description String
-    created_at  DateTime @default(now())
-    updated_at  DateTime @updatedAt
-    user_id     Int
-    user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-    posts       Post[]
+    id            Int      @id @default(autoincrement())
+    title         String   @unique
+    display_title String
+    description   String
+    image_url     String?
+    created_at    DateTime @default(now())
+    updated_at    DateTime @updatedAt
+    user_id       Int
+    user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    posts         Post[]
 
     @@map("topics")
 }
