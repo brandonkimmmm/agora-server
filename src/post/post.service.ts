@@ -46,12 +46,7 @@ export class PostService {
                                 comments: true
                             }
                         },
-                        topic: {
-                            select: {
-                                id: true,
-                                display_title: true
-                            }
-                        }
+                        topic: true
                     }
                 });
                 const postVotes = await prisma.vote.groupBy({
