@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SerializedUser } from 'src/shared/types/user.type';
 import { GetTopicsDTO, PostTopicDTO } from './dto';
@@ -9,10 +10,25 @@ export class TopicService {
 
     constructor(private readonly prismaService: PrismaService) {}
 
-    async findTopics({ limit, page }: GetTopicsDTO) {
+    async isExistingTitle(title: string) {
+        this.logger.debug(`isExistingTitle title`, { title });
+        const count = await this.prismaService.topic.count({
+            where: { title }
+        });
+        return count === 1;
+    }
+
+    async findTopics({ limit, page, title }: GetTopicsDTO) {
+        const where: Prisma.TopicWhereInput = {};
+
+        if (title) {
+            where.title = title;
+        }
+
         const [count, data] = await this.prismaService.$transaction([
-            this.prismaService.topic.count(),
+            this.prismaService.topic.count({ where }),
             this.prismaService.topic.findMany({
+                where,
                 orderBy: {
                     created_at: 'desc'
                 },
@@ -41,13 +57,18 @@ export class TopicService {
 
     async createTopic(
         reqUser: SerializedUser,
-        { title, description, display_title, image_url }: PostTopicDTO
+        {
+            title,
+            description,
+            display_title,
+            image_url
+        }: PostTopicDTO & { title: string }
     ) {
         return this.prismaService.topic.create({
             data: {
                 title,
                 description,
-                display_title: display_title || title,
+                display_title,
                 image_url,
                 user: {
                     connect: {

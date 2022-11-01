@@ -3,19 +3,19 @@ import {
     IsOptional,
     IsString,
     IsUrl,
-    NotContains
+    Matches,
+    MaxLength,
+    MinLength
 } from 'class-validator';
+import { TOPIC_TITLE_REGEX } from 'src/shared/constants';
 
 export class PostTopicDTO {
-    @IsString()
-    @IsNotEmpty()
-    @NotContains(' ', { message: 'No spaces allowed' })
-    readonly title: string;
-
     @IsOptional()
     @IsString()
-    @NotContains(' ', { message: 'No spaces allowed' })
-    readonly display_title?: string;
+    @MinLength(3)
+    @MaxLength(10)
+    @Matches(TOPIC_TITLE_REGEX)
+    readonly display_title: string;
 
     @IsOptional()
     @IsUrl()

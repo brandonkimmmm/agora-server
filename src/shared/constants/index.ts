@@ -5,3 +5,5 @@ export const USER_ROLE = {
     ADMIN: 'ADMIN',
     USER: 'USER'
 };
+
+export const TOPIC_TITLE_REGEX = /^[\da-zA-Z_]*$/;

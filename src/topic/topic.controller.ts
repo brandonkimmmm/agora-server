@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     Body,
     Controller,
     Get,
@@ -7,8 +8,8 @@ import {
     Query,
     UseGuards
 } from '@nestjs/common';
+import { upperCase } from 'lodash';
 import { JwtGuard } from 'src/auth/jwt/jwt.guard';
-import { PostService } from 'src/post/post.service';
 import { ReqUser } from 'src/shared/decorators/req-user.decorator';
 import { SerializedUser } from 'src/shared/types/user.type';
 import { GetTopicsDTO, PostTopicDTO } from './dto';
@@ -18,10 +19,7 @@ import { TopicService } from './topic.service';
 export class TopicController {
     private readonly logger: Logger = new Logger(TopicController.name);
 
-    constructor(
-        private readonly topicService: TopicService,
-        private readonly postService: PostService
-    ) {}
+    constructor(private readonly topicService: TopicService) {}
 
     @Get()
     async getTopics(@Query() dto: GetTopicsDTO) {
@@ -34,6 +32,9 @@ export class TopicController {
         @ReqUser() reqUser: SerializedUser,
         @Body() dto: PostTopicDTO
     ) {
-        return this.topicService.createTopic(reqUser, dto);
+        const title = upperCase(dto.display_title);
+        const isTakenTitle = await this.topicService.isExistingTitle(title);
+        if (isTakenTitle) throw new BadRequestException('Topic already exists');
+        return this.topicService.createTopic(reqUser, { ...dto, title });
     }
 }
