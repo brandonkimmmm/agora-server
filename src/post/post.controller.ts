@@ -1,4 +1,5 @@
-import { Controller, Get, Logger, Query } from '@nestjs/common';
+import { Controller, Get, Logger, Query, UsePipes } from '@nestjs/common';
+import { TopicIdQueryPipe } from 'src/topic/pipes/topic-id-query.pipe';
 import { GetPostsDTO } from './dto';
 import { PostService } from './post.service';
 
@@ -9,7 +10,8 @@ export class PostController {
     constructor(private readonly postService: PostService) {}
 
     @Get()
-    async getPosts(@Query() { limit, page }: GetPostsDTO) {
-        return this.postService.findPosts({ limit, page });
+    @UsePipes(TopicIdQueryPipe)
+    async getPosts(@Query() dto: GetPostsDTO) {
+        return this.postService.findPosts(dto);
     }
 }

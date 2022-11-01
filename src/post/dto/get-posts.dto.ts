@@ -8,4 +8,10 @@ export class GetPostsDTO extends PaginationDTO {
     @IsInt()
     @IsPositive()
     readonly user_id?: number;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsInt()
+    @IsPositive()
+    readonly topic_id?: number;
 }
