@@ -59,8 +59,17 @@ export class AuthController {
     ) {
         if (password !== password_confirmation)
             throw new BadRequestException(INVALID_PASSWORD_CONFIRMATION);
-        const isTakenEmail = await this.userService.isExistingUserEmail(email);
-        if (isTakenEmail) throw new BadRequestException(USER_EXISTS(email));
+        const isTakenUsername = await this.userService.isExistingUsername(
+            username
+        );
+        if (isTakenUsername)
+            throw new BadRequestException(USER_EXISTS(username));
+        if (email) {
+            const isTakenEmail = await this.userService.isExistingUserEmail(
+                email
+            );
+            if (isTakenEmail) throw new BadRequestException(USER_EXISTS(email));
+        }
         const user = await this.userService.createUser({
             data: {
                 email,

@@ -16,6 +16,14 @@ export class UserService {
         return count === 1;
     }
 
+    async isExistingUsername(username: string) {
+        this.logger.debug(`isExistingUsername username`, { username });
+        const count = await this.prismaService.user.count({
+            where: { username }
+        });
+        return count === 1;
+    }
+
     async createUser(args: Prisma.UserCreateArgs) {
         return this.prismaService.user.create(args);
     }

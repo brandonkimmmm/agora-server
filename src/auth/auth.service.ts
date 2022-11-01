@@ -1,9 +1,9 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { INVALID_CREDENTIALS } from 'src/shared/messages';
+import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcryptjs';
 import { omit } from 'lodash';
-import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { INVALID_CREDENTIALS } from 'src/shared/messages';
 import { SerializedUser } from 'src/shared/types/user.type';
 
 @Injectable()
@@ -15,10 +15,10 @@ export class AuthService {
         private readonly jwtService: JwtService
     ) {}
 
-    async validateCredentials(email: string, password: string) {
-        this.logger.verbose('validateCredentials user', { email });
+    async validateCredentials(username: string, password: string) {
+        this.logger.verbose('validateCredentials user', { username });
         const user = await this.prismaService.user.findUnique({
-            where: { email }
+            where: { username }
         });
         if (!user) throw new UnauthorizedException(INVALID_CREDENTIALS);
         const isValidPassword = await bcrypt.compare(password, user.password);

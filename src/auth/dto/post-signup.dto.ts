@@ -4,15 +4,18 @@ import {
     IsNotEmpty,
     IsOptional,
     IsString,
-    Matches
+    Matches,
+    MaxLength,
+    MinLength
 } from 'class-validator';
 import { PASSWORD_REGEX } from 'src/shared/constants';
 import { IsEqualTo } from 'src/shared/decorators/equal-to.decorator';
 
 export class PostSignupDTO {
+    @IsOptional()
     @IsEmail()
     @Transform(({ value }) => value.toLowerCase())
-    readonly email: string;
+    readonly email?: string;
 
     @Matches(PASSWORD_REGEX)
     readonly password: string;
@@ -20,16 +23,19 @@ export class PostSignupDTO {
     @IsEqualTo('password')
     readonly password_confirmation: string;
 
+    @IsOptional()
     @IsString()
     @IsNotEmpty()
-    readonly first_name: string;
-
-    @IsString()
-    @IsNotEmpty()
-    readonly last_name: string;
+    readonly first_name?: string;
 
     @IsOptional()
     @IsString()
     @IsNotEmpty()
-    readonly username?: string;
+    readonly last_name?: string;
+
+    @IsString()
+    @Transform(({ value }) => value.trim())
+    @MinLength(4)
+    @MaxLength(10)
+    readonly username: string;
 }
