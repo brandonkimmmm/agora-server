@@ -13,61 +13,100 @@ datasource db {
 }
 
 model User {
-    id         Int       @id @default(autoincrement())
-    email      String    @unique
+    id         Int        @id @default(autoincrement())
+    email      String     @unique
     username   String
     password   String
     first_name String
     last_name  String
-    role       String    @default("USER")
-    created_at DateTime  @default(now())
-    updated_at DateTime  @updatedAt
+    role       String     @default("USER")
+    created_at DateTime   @default(now())
+    updated_at DateTime   @updatedAt
     topics     Topic[]
     posts      Post[]
     comments   Comment[]
+    votes      Vote[]
+    favorites  Favorite[]
 
     @@map("users")
 }
 
 model Topic {
-    id            Int      @id @default(autoincrement())
-    title         String   @unique
+    id            Int        @id @default(autoincrement())
+    title         String     @unique
     display_title String
     description   String
     image_url     String?
-    created_at    DateTime @default(now())
-    updated_at    DateTime @updatedAt
+    created_at    DateTime   @default(now())
+    updated_at    DateTime   @updatedAt
     user_id       Int
-    user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    user          User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
     posts         Post[]
+    favorites     Favorite[]
 
     @@map("topics")
 }
 
 model Post {
-    id         Int       @id @default(autoincrement())
+    id         Int        @id @default(autoincrement())
     title      String
     body       String
-    created_at DateTime  @default(now())
-    updated_at DateTime  @updatedAt
+    created_at DateTime   @default(now())
+    updated_at DateTime   @updatedAt
     user_id    Int
-    user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
     topic_id   Int
-    topic      Topic     @relation(fields: [topic_id], references: [id], onDelete: Cascade)
+    topic      Topic      @relation(fields: [topic_id], references: [id], onDelete: Cascade)
     comments   Comment[]
+    votes      Vote[]
+    favorites  Favorite[]
 
     @@map("posts")
 }
 
 model Comment {
-    id         Int      @id @default(autoincrement())
+    id         Int        @id @default(autoincrement())
     body       String
-    created_at DateTime @default(now())
-    updated_at DateTime @updatedAt
+    created_at DateTime   @default(now())
+    updated_at DateTime   @updatedAt
     user_id    Int
-    user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
     post_id    Int
-    post       Post     @relation(fields: [post_id], references: [id], onDelete: Cascade)
+    post       Post       @relation(fields: [post_id], references: [id], onDelete: Cascade)
+    votes      Vote[]
+    favorites  Favorite[]
 
     @@map("comments")
+}
+
+model Vote {
+    id         Int      @id @default(autoincrement())
+    user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    user_id    Int
+    comment    Comment? @relation(fields: [comment_id], references: [id], onDelete: Cascade)
+    comment_id Int?
+    post       Post?    @relation(fields: [post_id], references: [id], onDelete: Cascade)
+    post_id    Int?
+    value      Int
+    created_at DateTime @default(now())
+    updated_at DateTime @updatedAt
+
+    @@map("votes")
+}
+
+model Favorite {
+    id         Int      @id @default(autoincrement())
+    user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    user_id    Int
+    comment    Comment? @relation(fields: [comment_id], references: [id], onDelete: Cascade)
+    comment_id Int?
+    post       Post?    @relation(fields: [post_id], references: [id], onDelete: Cascade)
+    post_id    Int?
+    topic      Topic?   @relation(fields: [topic_id], references: [id], onDelete: Cascade)
+    topic_id   Int?
+    value      Int
+    created_at DateTime @default(now())
+    updated_at DateTime @updatedAt
+
+    @@map("favorites")
 }
