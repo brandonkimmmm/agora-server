@@ -16,7 +16,15 @@ export class TopicService {
                 orderBy: {
                     created_at: 'desc'
                 },
-                ...this.prismaService.generatePaginationQuery(limit, page)
+                ...this.prismaService.generatePaginationQuery(limit, page),
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            username: true
+                        }
+                    }
+                }
             })
         ]);
 

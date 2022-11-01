@@ -9,6 +9,9 @@ import { nanoid } from 'nanoid';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { TopicModule } from './topic/topic.module';
+import { PostController } from './post/post.controller';
+import { PostService } from './post/post.service';
+import { PostModule } from './post/post.module';
 
 @Module({
     imports: [
@@ -81,9 +84,10 @@ import { TopicModule } from './topic/topic.module';
         PrismaModule,
         UserModule,
         AuthModule,
-        TopicModule
+        TopicModule,
+        PostModule
     ],
-    controllers: [AppController],
-    providers: [AppService]
+    controllers: [AppController, PostController],
+    providers: [AppService, PostService]
 })
 export class AppModule {}

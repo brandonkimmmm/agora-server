@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
-import { TopicService } from './topic.service';
+import { PostModule } from 'src/post/post.module';
 import { TopicController } from './topic.controller';
+import { TopicService } from './topic.service';
 
 @Module({
     providers: [TopicService],
-    controllers: [TopicController]
+    controllers: [TopicController],
+    imports: [PostModule]
 })
 export class TopicModule {}
