@@ -23,6 +23,11 @@ export class TopicService {
                             id: true,
                             username: true
                         }
+                    },
+                    _count: {
+                        select: {
+                            posts: true
+                        }
                     }
                 }
             })

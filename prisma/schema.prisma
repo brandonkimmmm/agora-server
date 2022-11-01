@@ -54,6 +54,7 @@ model Post {
     created_at DateTime   @default(now())
     updated_at DateTime   @updatedAt
     user_id    Int
+    media_url  String?
     user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
     topic_id   Int
     topic      Topic      @relation(fields: [topic_id], references: [id], onDelete: Cascade)

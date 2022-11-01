@@ -25,29 +25,61 @@ export class PostService {
             where.user_id = user_id;
         }
 
-        const [count, data] = await this.prismaService.$transaction([
-            this.prismaService.post.count({ where }),
-            this.prismaService.post.findMany({
-                where,
-                orderBy: {
-                    created_at: 'desc'
-                },
-                ...this.prismaService.generatePaginationQuery(limit, page),
-                include: {
-                    user: {
-                        select: {
-                            id: true,
-                            username: true
-                        }
+        const [count, data] = await this.prismaService.$transaction(
+            async (prisma) => {
+                const count = await prisma.post.count({ where });
+                const data = await prisma.post.findMany({
+                    where,
+                    orderBy: {
+                        created_at: 'desc'
                     },
-                    votes: {
-                        select: {
-                            value: true
+                    ...this.prismaService.generatePaginationQuery(limit, page),
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                username: true
+                            }
+                        },
+                        _count: {
+                            select: {
+                                comments: true
+                            }
+                        },
+                        topic: {
+                            select: {
+                                id: true,
+                                display_title: true
+                            }
                         }
                     }
-                }
-            })
-        ]);
+                });
+                const postVotes = await prisma.vote.groupBy({
+                    by: ['post_id'],
+                    where: {
+                        post_id: {
+                            in: data.map((d) => d.id)
+                        }
+                    },
+                    _sum: {
+                        value: true
+                    }
+                });
+
+                return [
+                    count,
+                    data.map((d) => {
+                        const votes = postVotes.find((v) => v.post_id === d.id);
+                        return {
+                            ...d,
+                            _sum: {
+                                votes: votes?._sum ? votes._sum.value : 0
+                            }
+                        };
+                    })
+                ];
+            }
+        );
 
         return {
             count,
