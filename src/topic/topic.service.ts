@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { upperCase } from 'lodash';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SerializedUser } from 'src/shared/types/user.type';
 import { GetTopicsDTO, PostTopicDTO } from './dto';
@@ -18,11 +19,11 @@ export class TopicService {
         return count === 1;
     }
 
-    async findTopics({ limit, page, title }: GetTopicsDTO) {
+    async findTopics({ limit, page, display_title }: GetTopicsDTO) {
         const where: Prisma.TopicWhereInput = {};
 
-        if (title) {
-            where.title = title;
+        if (display_title) {
+            where.title = upperCase(display_title);
         }
 
         const [count, data] = await this.prismaService.$transaction([

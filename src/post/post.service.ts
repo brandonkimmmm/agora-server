@@ -13,12 +13,17 @@ export class PostService {
         limit,
         page,
         topic_id,
-        user_id
-    }: GetPostsDTO & { topic_id?: number }) {
+        user_id,
+        topic_title
+    }: GetPostsDTO) {
         const where: Prisma.PostWhereInput = {};
 
         if (topic_id) {
             where.topic_id = topic_id;
+        } else if (topic_title) {
+            where.topic = {
+                title: topic_title
+            };
         }
 
         if (user_id) {

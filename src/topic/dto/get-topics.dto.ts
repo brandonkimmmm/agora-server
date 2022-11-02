@@ -14,5 +14,5 @@ export class GetTopicsDTO extends PaginationDTO {
     @MinLength(3)
     @MaxLength(10)
     @Matches(TOPIC_TITLE_REGEX)
-    readonly title?: string;
+    readonly display_title?: string;
 }
