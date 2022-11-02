@@ -1,5 +1,5 @@
 import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
-import { isString } from 'lodash';
+import { isString, toUpper } from 'lodash';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -10,7 +10,7 @@ export class TopicTitleQueryPipe implements PipeTransform {
         if (metadata.type === 'query') {
             if (isString(value.topic_title)) {
                 await this.prismaService.topic.findFirstOrThrow({
-                    where: { title: value.topic_title }
+                    where: { title: toUpper(value.topic_title) }
                 });
             }
         }

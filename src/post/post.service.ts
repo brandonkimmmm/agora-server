@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { toUpper } from 'lodash';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { GetPostsDTO } from './dto';
 
@@ -22,7 +23,7 @@ export class PostService {
             where.topic_id = topic_id;
         } else if (topic_title) {
             where.topic = {
-                title: topic_title
+                title: toUpper(topic_title)
             };
         }
 
