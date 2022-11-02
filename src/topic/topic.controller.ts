@@ -8,7 +8,7 @@ import {
     Query,
     UseGuards
 } from '@nestjs/common';
-import { upperCase } from 'lodash';
+import { toUpper } from 'lodash';
 import { JwtGuard } from 'src/auth/jwt/jwt.guard';
 import { ReqUser } from 'src/shared/decorators/req-user.decorator';
 import { SerializedUser } from 'src/shared/types/user.type';
@@ -32,7 +32,7 @@ export class TopicController {
         @ReqUser() reqUser: SerializedUser,
         @Body() dto: PostTopicDTO
     ) {
-        const title = upperCase(dto.display_title);
+        const title = toUpper(dto.display_title);
         const isTakenTitle = await this.topicService.isExistingTitle(title);
         if (isTakenTitle) throw new BadRequestException('Topic already exists');
         return this.topicService.createTopic(reqUser, { ...dto, title });

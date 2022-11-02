@@ -13,7 +13,7 @@ export class PostTopicDTO {
     @IsOptional()
     @IsString()
     @MinLength(3)
-    @MaxLength(10)
+    @MaxLength(20)
     @Matches(TOPIC_TITLE_REGEX)
     readonly display_title: string;
 

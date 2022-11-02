@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { upperCase } from 'lodash';
+import { toUpper } from 'lodash';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SerializedUser } from 'src/shared/types/user.type';
 import { GetTopicsDTO, PostTopicDTO } from './dto';
@@ -23,7 +23,7 @@ export class TopicService {
         const where: Prisma.TopicWhereInput = {};
 
         if (display_title) {
-            where.title = upperCase(display_title);
+            where.title = toUpper(display_title);
         }
 
         const [count, data] = await this.prismaService.$transaction([
