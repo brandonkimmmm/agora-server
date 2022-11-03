@@ -34,4 +34,10 @@ export class GetPostsDTO extends PaginationDTO {
     @Matches(TOPIC_TITLE_REGEX)
     @ValidateIf((o) => isUndefined(o.topic_id) || o.topic_title)
     readonly topic_title?: string;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsInt()
+    @IsPositive()
+    readonly post_id?: number;
 }

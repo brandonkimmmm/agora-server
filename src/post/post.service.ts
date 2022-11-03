@@ -15,7 +15,8 @@ export class PostService {
         page,
         topic_id,
         user_id,
-        topic_title
+        topic_title,
+        post_id
     }: GetPostsDTO) {
         const where: Prisma.PostWhereInput = {};
 
@@ -29,6 +30,10 @@ export class PostService {
 
         if (user_id) {
             where.user_id = user_id;
+        }
+
+        if (post_id) {
+            where.id = post_id;
         }
 
         const [count, data] = await this.prismaService.$transaction(
