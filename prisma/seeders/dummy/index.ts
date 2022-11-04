@@ -42,6 +42,7 @@ const prisma = new PrismaClient();
         }
         console.log('Dummy users seeded');
 
+        const topicIds: number[] = [];
         console.log('Seeding dummy topics');
         for (const {
             title,
@@ -63,6 +64,8 @@ const prisma = new PrismaClient();
                     user_id: 1
                 }
             });
+
+            topicIds.push(topic.id);
 
             for (const { title, body, comments } of posts) {
                 const post = await prisma.post.create({
@@ -98,6 +101,58 @@ const prisma = new PrismaClient();
                         });
                     }
                 }
+            }
+        }
+
+        for (let i = 0; i < 20; i++) {
+            const post = await prisma.post.create({
+                data: {
+                    title: faker.lorem.sentence(),
+                    body: faker.lorem.sentences(
+                        faker.datatype.number({ min: 6, max: 20 })
+                    ),
+                    media_url: faker.datatype.boolean()
+                        ? faker.image.imageUrl(
+                              undefined,
+                              undefined,
+                              undefined,
+                              true
+                          )
+                        : null,
+                    topic_id:
+                        topicIds[
+                            faker.datatype.number({
+                                min: 0,
+                                max: topicIds.length - 1
+                            })
+                        ],
+                    user_id: faker.datatype.boolean()
+                        ? 1
+                        : userIds[
+                              faker.datatype.number({
+                                  min: 0,
+                                  max: userIds.length - 1
+                              })
+                          ]
+                }
+            });
+
+            for (let i = 0; i < 10; i++) {
+                await prisma.comment.create({
+                    data: {
+                        body: faker.lorem.sentences(
+                            faker.datatype.number({ min: 1, max: 10 })
+                        ),
+                        post_id: post.id,
+                        user_id:
+                            userIds[
+                                faker.datatype.number({
+                                    min: 0,
+                                    max: userIds.length - 1
+                                })
+                            ]
+                    }
+                });
             }
         }
         console.log('Dummy topics seeded');
