@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { toUpper } from 'lodash';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { SerializedUser } from 'src/shared/types/user.type';
 import { GetPostCommentsDTO, GetPostsDTO } from './dto';
 
 @Injectable()
@@ -46,14 +47,10 @@ export class PostService {
         };
     }
 
-    async findPosts({
-        limit,
-        page,
-        topic_id,
-        user_id,
-        topic_title,
-        post_id
-    }: GetPostsDTO) {
+    async findPosts(
+        { limit, page, topic_id, user_id, topic_title, post_id }: GetPostsDTO,
+        user?: SerializedUser
+    ) {
         const where: Prisma.PostWhereInput = {};
 
         if (topic_id) {
@@ -93,7 +90,17 @@ export class PostService {
                                 comments: true
                             }
                         },
-                        topic: true
+                        topic: true,
+                        votes: user
+                            ? {
+                                  where: {
+                                      user_id: user.id
+                                  },
+                                  select: {
+                                      value: true
+                                  }
+                              }
+                            : false
                     }
                 });
                 const postVotes = await prisma.vote.groupBy({
@@ -116,7 +123,12 @@ export class PostService {
                             ...d,
                             _sum: {
                                 votes: votes?._sum ? votes._sum.value : 0
-                            }
+                            },
+                            user_vote: d.votes
+                                ? d.votes[0]
+                                    ? d.votes[0].value
+                                    : 0
+                                : null
                         };
                     })
                 ];
@@ -126,6 +138,148 @@ export class PostService {
         return {
             count,
             data
+        };
+    }
+
+    async postUpvote(user: SerializedUser, postId: number) {
+        const vote = await this.prismaService.vote.findFirst({
+            where: {
+                post_id: postId,
+                user_id: user.id
+            }
+        });
+
+        if (vote) {
+            await this.prismaService.vote.update({
+                where: {
+                    id: vote.id
+                },
+                data: {
+                    value: 1
+                }
+            });
+        } else {
+            await this.prismaService.vote.create({
+                data: {
+                    post_id: postId,
+                    user_id: user.id,
+                    value: 1
+                }
+            });
+        }
+
+        const postVotes = await this.prismaService.vote.groupBy({
+            by: ['post_id'],
+            where: {
+                post_id: postId
+            },
+            _sum: {
+                value: true
+            }
+        });
+
+        const votes = postVotes.find((v) => v.post_id === postId);
+
+        return {
+            id: postId,
+            _sum: {
+                votes: votes?._sum ? votes._sum.value : 0
+            },
+            user_vote: 1
+        };
+    }
+
+    async postDownvote(user: SerializedUser, postId: number) {
+        const vote = await this.prismaService.vote.findFirst({
+            where: {
+                post_id: postId,
+                user_id: user.id
+            }
+        });
+
+        if (vote) {
+            await this.prismaService.vote.update({
+                where: {
+                    id: vote.id
+                },
+                data: {
+                    value: -1
+                }
+            });
+        } else {
+            await this.prismaService.vote.create({
+                data: {
+                    post_id: postId,
+                    user_id: user.id,
+                    value: -1
+                }
+            });
+        }
+        const postVotes = await this.prismaService.vote.groupBy({
+            by: ['post_id'],
+            where: {
+                post_id: postId
+            },
+            _sum: {
+                value: true
+            }
+        });
+
+        const votes = postVotes.find((v) => v.post_id === postId);
+
+        return {
+            id: postId,
+            _sum: {
+                votes: votes?._sum ? votes._sum.value : 0
+            },
+            user_vote: -1
+        };
+    }
+
+    async postResetVote(user: SerializedUser, postId: number) {
+        const vote = await this.prismaService.vote.findFirst({
+            where: {
+                post_id: postId,
+                user_id: user.id
+            }
+        });
+
+        if (vote) {
+            await this.prismaService.vote.update({
+                where: {
+                    id: vote.id
+                },
+                data: {
+                    value: 0
+                }
+            });
+        } else {
+            await this.prismaService.vote.create({
+                data: {
+                    post_id: postId,
+                    user_id: user.id,
+                    value: 0
+                }
+            });
+        }
+        const postVotes = await this.prismaService.vote.groupBy({
+            by: ['post_id'],
+            where: {
+                post_id: postId
+            },
+            _sum: {
+                value: true
+            }
+        });
+
+        const votes = postVotes.find((v) => v.post_id === postId);
+
+        return {
+            id: postId,
+            _sum: {
+                votes: votes?._sum ? votes._sum.value : 0
+            },
+            user_vote: 0
         };
     }
 }

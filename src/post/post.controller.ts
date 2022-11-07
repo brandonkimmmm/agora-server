@@ -3,9 +3,15 @@ import {
     Get,
     Logger,
     Param,
+    Put,
     Query,
+    UseGuards,
     UsePipes
 } from '@nestjs/common';
+import { JwtGuard } from 'src/auth/jwt/jwt.guard';
+import { OptionalJwtGuard } from 'src/auth/jwt/optional-jwt.guard';
+import { ReqUser } from 'src/shared/decorators/req-user.decorator';
+import { SerializedUser } from 'src/shared/types/user.type';
 import { TopicIdQueryPipe } from 'src/topic/pipes/topic-id-query.pipe';
 import { TopicTitleQueryPipe } from 'src/topic/pipes/topic-title-query.pipe';
 import { GetPostCommentsDTO, GetPostsDTO, ParamPostIdDTO } from './dto';
@@ -21,16 +27,52 @@ export class PostController {
 
     @Get()
     @UsePipes(TopicIdQueryPipe, TopicTitleQueryPipe, PostIdQueryPipe)
-    async getPosts(@Query() dto: GetPostsDTO) {
-        return this.postService.findPosts(dto);
+    @UseGuards(OptionalJwtGuard)
+    async getPosts(
+        @Query() dto: GetPostsDTO,
+        @ReqUser() reqUser?: SerializedUser
+    ) {
+        return this.postService.findPosts(dto, reqUser);
     }
 
     @Get(':post_id/comments')
     @UsePipes(PostIdParamPipe)
+    @UseGuards(OptionalJwtGuard)
     async getPostComments(
         @Param() { post_id }: ParamPostIdDTO,
-        @Query() dto: GetPostCommentsDTO
+        @Query() dto: GetPostCommentsDTO,
+        @ReqUser() reqUser?: SerializedUser
     ) {
         return this.postService.findPostComments(post_id, dto);
+    }
+
+    @Put(':post_id/vote/up')
+    @UseGuards(JwtGuard)
+    @UsePipes(PostIdParamPipe)
+    async putPostUpvote(
+        @ReqUser() reqUser: SerializedUser,
+        @Param() { post_id }: ParamPostIdDTO
+    ) {
+        return this.postService.postUpvote(reqUser, post_id);
+    }
+
+    @Put(':post_id/vote/down')
+    @UseGuards(JwtGuard)
+    @UsePipes(PostIdParamPipe)
+    async putPostDownvote(
+        @ReqUser() reqUser: SerializedUser,
+        @Param() { post_id }: ParamPostIdDTO
+    ) {
+        return this.postService.postDownvote(reqUser, post_id);
+    }
+
+    @Put(':post_id/vote/reset')
+    @UseGuards(JwtGuard)
+    @UsePipes(PostIdParamPipe)
+    async putPostResetVote(
+        @ReqUser() reqUser: SerializedUser,
+        @Param() { post_id }: ParamPostIdDTO
+    ) {
+        return this.postService.postResetVote(reqUser, post_id);
     }
 }
