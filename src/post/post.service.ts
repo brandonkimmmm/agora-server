@@ -13,7 +13,8 @@ export class PostService {
 
     async findPostComments(
         postId: number,
-        { limit, page }: GetPostCommentsDTO
+        { limit, page }: GetPostCommentsDTO,
+        user?: SerializedUser
     ) {
         const where = {
             post_id: postId
@@ -33,11 +34,56 @@ export class PostService {
                                 id: true,
                                 username: true
                             }
-                        }
+                        },
+                        post: {
+                            select: {
+                                id: true
+                            }
+                        },
+                        votes: user
+                            ? {
+                                  where: {
+                                      user_id: user.id
+                                  },
+                                  select: {
+                                      value: true
+                                  }
+                              }
+                            : false
                     }
                 });
 
-                return [count, data];
+                const commentVotes = await prisma.vote.groupBy({
+                    by: ['comment_id'],
+                    where: {
+                        comment_id: {
+                            in: data.map((d) => d.id)
+                        }
+                    },
+                    _sum: {
+                        value: true
+                    }
+                });
+
+                return [
+                    count,
+                    data.map((d) => {
+                        const votes = commentVotes.find(
+                            (v) => v.comment_id === d.id
+                        );
+                        return {
+                            ...d,
+                            _sum: {
+                                votes: votes?._sum ? votes._sum.value : 0
+                            },
+                            user_vote: d.votes
+                                ? d.votes[0]
+                                    ? d.votes[0].value
+                                    : 0
+                                : null
+                        };
+                    })
+                ];
             }
         );
 
@@ -276,6 +322,150 @@ export class PostService {
 
         return {
             id: postId,
+            _sum: {
+                votes: votes?._sum ? votes._sum.value : 0
+            },
+            user_vote: 0
+        };
+    }
+
+    async postCommentUpvote(user: SerializedUser, commentId: number) {
+        const vote = await this.prismaService.vote.findFirst({
+            where: {
+                comment_id: commentId,
+                user_id: user.id
+            }
+        });
+
+        if (vote) {
+            await this.prismaService.vote.update({
+                where: {
+                    id: vote.id
+                },
+                data: {
+                    value: 1
+                }
+            });
+        } else {
+            await this.prismaService.vote.create({
+                data: {
+                    comment_id: commentId,
+                    user_id: user.id,
+                    value: 1
+                }
+            });
+        }
+
+        const commentVotes = await this.prismaService.vote.groupBy({
+            by: ['comment_id'],
+            where: {
+                comment_id: commentId
+            },
+            _sum: {
+                value: true
+            }
+        });
+
+        const votes = commentVotes.find((v) => v.comment_id === commentId);
+
+        return {
+            id: commentId,
+            _sum: {
+                votes: votes?._sum ? votes._sum.value : 0
+            },
+            user_vote: 1
+        };
+    }
+
+    async postCommentDownvote(user: SerializedUser, commentId: number) {
+        const vote = await this.prismaService.vote.findFirst({
+            where: {
+                comment_id: commentId,
+                user_id: user.id
+            }
+        });
+
+        if (vote) {
+            await this.prismaService.vote.update({
+                where: {
+                    id: vote.id
+                },
+                data: {
+                    value: -1
+                }
+            });
+        } else {
+            await this.prismaService.vote.create({
+                data: {
+                    comment_id: commentId,
+                    user_id: user.id,
+                    value: -1
+                }
+            });
+        }
+
+        const commentVotes = await this.prismaService.vote.groupBy({
+            by: ['comment_id'],
+            where: {
+                comment_id: commentId
+            },
+            _sum: {
+                value: true
+            }
+        });
+
+        const votes = commentVotes.find((v) => v.comment_id === commentId);
+
+        return {
+            id: commentId,
+            _sum: {
+                votes: votes?._sum ? votes._sum.value : 0
+            },
+            user_vote: -1
+        };
+    }
+
+    async postCommentResetVote(user: SerializedUser, commentId: number) {
+        const vote = await this.prismaService.vote.findFirst({
+            where: {
+                comment_id: commentId,
+                user_id: user.id
+            }
+        });
+
+        if (vote) {
+            await this.prismaService.vote.update({
+                where: {
+                    id: vote.id
+                },
+                data: {
+                    value: 0
+                }
+            });
+        } else {
+            await this.prismaService.vote.create({
+                data: {
+                    comment_id: commentId,
+                    user_id: user.id,
+                    value: 0
+                }
+            });
+        }
+
+        const commentVotes = await this.prismaService.vote.groupBy({
+            by: ['comment_id'],
+            where: {
+                comment_id: commentId
+            },
+            _sum: {
+                value: true
+            }
+        });
+
+        const votes = commentVotes.find((v) => v.comment_id === commentId);
+
+        return {
+            id: commentId,
             _sum: {
                 votes: votes?._sum ? votes._sum.value : 0
             },

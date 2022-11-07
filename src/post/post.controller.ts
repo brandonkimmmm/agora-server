@@ -14,7 +14,13 @@ import { ReqUser } from 'src/shared/decorators/req-user.decorator';
 import { SerializedUser } from 'src/shared/types/user.type';
 import { TopicIdQueryPipe } from 'src/topic/pipes/topic-id-query.pipe';
 import { TopicTitleQueryPipe } from 'src/topic/pipes/topic-title-query.pipe';
-import { GetPostCommentsDTO, GetPostsDTO, ParamPostIdDTO } from './dto';
+import {
+    GetPostCommentsDTO,
+    GetPostsDTO,
+    ParamCommentIdDTO,
+    ParamPostIdDTO
+} from './dto';
+import { CommentIdParamPipe } from './pipes/comment-id-param.pipe';
 import { PostIdParamPipe } from './pipes/post-id-param.pipe';
 import { PostIdQueryPipe } from './pipes/post-id-query.pipe';
 import { PostService } from './post.service';
@@ -43,7 +49,7 @@ export class PostController {
         @Query() dto: GetPostCommentsDTO,
         @ReqUser() reqUser?: SerializedUser
     ) {
-        return this.postService.findPostComments(post_id, dto);
+        return this.postService.findPostComments(post_id, dto, reqUser);
     }
 
     @Put(':post_id/vote/up')
@@ -74,5 +80,35 @@ export class PostController {
         @Param() { post_id }: ParamPostIdDTO
     ) {
         return this.postService.postResetVote(reqUser, post_id);
+    }
+
+    @Put(':post_id/comments/:comment_id/vote/up')
+    @UseGuards(JwtGuard)
+    @UsePipes(PostIdParamPipe, CommentIdParamPipe)
+    async putPostCommentUpvote(
+        @ReqUser() reqUser: SerializedUser,
+        @Param() { comment_id }: ParamCommentIdDTO
+    ) {
+        return this.postService.postCommentUpvote(reqUser, comment_id);
+    }
+
+    @Put(':post_id/comments/:comment_id/vote/down')
+    @UseGuards(JwtGuard)
+    @UsePipes(PostIdParamPipe, CommentIdParamPipe)
+    async putPostCommentDownvote(
+        @ReqUser() reqUser: SerializedUser,
+        @Param() { comment_id }: ParamCommentIdDTO
+    ) {
+        return this.postService.postCommentDownvote(reqUser, comment_id);
+    }
+
+    @Put(':post_id/comments/:comment_id/vote/reset')
+    @UseGuards(JwtGuard)
+    @UsePipes(PostIdParamPipe, CommentIdParamPipe)
+    async putPostCommentResetVote(
+        @ReqUser() reqUser: SerializedUser,
+        @Param() { comment_id }: ParamCommentIdDTO
+    ) {
+        return this.postService.postCommentResetVote(reqUser, comment_id);
     }
 }
