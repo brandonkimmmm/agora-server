@@ -2,13 +2,49 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { toUpper } from 'lodash';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { GetPostsDTO } from './dto';
+import { GetPostCommentsDTO, GetPostsDTO } from './dto';
 
 @Injectable()
 export class PostService {
     private readonly logger: Logger = new Logger(PostService.name);
 
     constructor(private readonly prismaService: PrismaService) {}
+
+    async findPostComments(
+        postId: number,
+        { limit, page }: GetPostCommentsDTO
+    ) {
+        const where = {
+            post_id: postId
+        };
+        const [count, data] = await this.prismaService.$transaction(
+            async (prisma) => {
+                const count = await prisma.comment.count({ where });
+                const data = await prisma.comment.findMany({
+                    where,
+                    orderBy: {
+                        created_at: 'desc'
+                    },
+                    ...this.prismaService.generatePaginationQuery(limit, page),
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                username: true
+                            }
+                        }
+                    }
+                });
+
+                return [count, data];
+            }
+        );
+
+        return {
+            count,
+            data
+        };
+    }
 
     async findPosts({
         limit,
