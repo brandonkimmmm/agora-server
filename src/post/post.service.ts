@@ -188,28 +188,67 @@ export class PostService {
     }
 
     async postUpvote(user: SerializedUser, postId: number) {
-        const vote = await this.prismaService.vote.findFirst({
+        let vote = await this.prismaService.vote.findFirst({
             where: {
                 post_id: postId,
                 user_id: user.id
+            },
+            include: {
+                post: {
+                    select: {
+                        topic: {
+                            select: {
+                                id: true,
+                                title: true,
+                                display_title: true
+                            }
+                        }
+                    }
+                }
             }
         });
 
         if (vote) {
-            await this.prismaService.vote.update({
+            vote = await this.prismaService.vote.update({
                 where: {
                     id: vote.id
                 },
                 data: {
                     value: 1
+                },
+                include: {
+                    post: {
+                        select: {
+                            topic: {
+                                select: {
+                                    id: true,
+                                    title: true,
+                                    display_title: true
+                                }
+                            }
+                        }
+                    }
                 }
             });
         } else {
-            await this.prismaService.vote.create({
+            vote = await this.prismaService.vote.create({
                 data: {
                     post_id: postId,
                     user_id: user.id,
                     value: 1
+                },
+                include: {
+                    post: {
+                        select: {
+                            topic: {
+                                select: {
+                                    id: true,
+                                    title: true,
+                                    display_title: true
+                                }
+                            }
+                        }
+                    }
                 }
             });
         }
@@ -231,33 +270,77 @@ export class PostService {
             _sum: {
                 votes: votes?._sum ? votes._sum.value : 0
             },
-            user_vote: 1
+            user_vote: 1,
+            topic: {
+                id: vote.post.topic.id,
+                title: vote.post.topic.title,
+                display_title: vote.post.topic.display_title
+            }
         };
     }
 
     async postDownvote(user: SerializedUser, postId: number) {
-        const vote = await this.prismaService.vote.findFirst({
+        let vote = await this.prismaService.vote.findFirst({
             where: {
                 post_id: postId,
                 user_id: user.id
+            },
+            include: {
+                post: {
+                    select: {
+                        topic: {
+                            select: {
+                                id: true,
+                                title: true,
+                                display_title: true
+                            }
+                        }
+                    }
+                }
             }
         });
 
         if (vote) {
-            await this.prismaService.vote.update({
+            vote = await this.prismaService.vote.update({
                 where: {
                     id: vote.id
                 },
                 data: {
                     value: -1
+                },
+                include: {
+                    post: {
+                        select: {
+                            topic: {
+                                select: {
+                                    id: true,
+                                    title: true,
+                                    display_title: true
+                                }
+                            }
+                        }
+                    }
                 }
             });
         } else {
-            await this.prismaService.vote.create({
+            vote = await this.prismaService.vote.create({
                 data: {
                     post_id: postId,
                     user_id: user.id,
                     value: -1
+                },
+                include: {
+                    post: {
+                        select: {
+                            topic: {
+                                select: {
+                                    id: true,
+                                    title: true,
+                                    display_title: true
+                                }
+                            }
+                        }
+                    }
                 }
             });
         }
@@ -278,33 +361,77 @@ export class PostService {
             _sum: {
                 votes: votes?._sum ? votes._sum.value : 0
             },
-            user_vote: -1
+            user_vote: -1,
+            topic: {
+                id: vote.post.topic.id,
+                title: vote.post.topic.title,
+                display_title: vote.post.topic.display_title
+            }
         };
     }
 
     async postResetVote(user: SerializedUser, postId: number) {
-        const vote = await this.prismaService.vote.findFirst({
+        let vote = await this.prismaService.vote.findFirst({
             where: {
                 post_id: postId,
                 user_id: user.id
+            },
+            include: {
+                post: {
+                    select: {
+                        topic: {
+                            select: {
+                                id: true,
+                                title: true,
+                                display_title: true
+                            }
+                        }
+                    }
+                }
             }
         });
 
         if (vote) {
-            await this.prismaService.vote.update({
+            vote = await this.prismaService.vote.update({
                 where: {
                     id: vote.id
                 },
                 data: {
                     value: 0
+                },
+                include: {
+                    post: {
+                        select: {
+                            topic: {
+                                select: {
+                                    id: true,
+                                    title: true,
+                                    display_title: true
+                                }
+                            }
+                        }
+                    }
                 }
             });
         } else {
-            await this.prismaService.vote.create({
+            vote = await this.prismaService.vote.create({
                 data: {
                     post_id: postId,
                     user_id: user.id,
                     value: 0
+                },
+                include: {
+                    post: {
+                        select: {
+                            topic: {
+                                select: {
+                                    id: true,
+                                    title: true,
+                                    display_title: true
+                                }
+                            }
+                        }
+                    }
                 }
             });
         }
@@ -325,7 +452,12 @@ export class PostService {
             _sum: {
                 votes: votes?._sum ? votes._sum.value : 0
             },
-            user_vote: 0
+            user_vote: 0,
+            topic: {
+                id: vote.post.topic.id,
+                title: vote.post.topic.title,
+                display_title: vote.post.topic.display_title
+            }
         };
     }
 

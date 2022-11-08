@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { toUpper } from 'lodash';
+import { pick, toUpper } from 'lodash';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SerializedUser } from 'src/shared/types/user.type';
 import { GetTopicsDTO, PostTopicDTO } from './dto';
@@ -78,5 +78,105 @@ export class TopicService {
                 }
             }
         });
+    }
+
+    async findUserTopics(userId: number) {
+        const where = {
+            favorites: {
+                some: {
+                    user_id: userId,
+                    value: true
+                }
+            }
+        };
+        const [count, data] = await this.prismaService.$transaction([
+            this.prismaService.topic.count({
+                where
+            }),
+            this.prismaService.topic.findMany({
+                where,
+                select: {
+                    id: true,
+                    title: true,
+                    display_title: true,
+                    image_url: true
+                }
+            })
+        ]);
+
+        return {
+            count,
+            data
+        };
+    }
+
+    async topicSubscribe(user: SerializedUser, title: string) {
+        const topic = await this.prismaService.topic.findFirst({
+            where: {
+                title
+            },
+            include: {
+                favorites: {
+                    where: {
+                        user_id: user.id
+                    }
+                }
+            }
+        });
+        const favorite = topic.favorites.find((f) => f.user_id === user.id);
+        if (favorite) {
+            await this.prismaService.favorite.update({
+                where: {
+                    id: favorite.id
+                },
+                data: {
+                    value: true
+                }
+            });
+        } else {
+            await this.prismaService.favorite.create({
+                data: {
+                    topic_id: topic.id,
+                    user_id: user.id,
+                    value: true
+                }
+            });
+        }
+        return pick(topic, ['id', 'title', 'display_title', 'image_url']);
+    }
+
+    async topicUnsubscribe(user: SerializedUser, title: string) {
+        const topic = await this.prismaService.topic.findFirst({
+            where: {
+                title
+            },
+            include: {
+                favorites: {
+                    where: {
+                        user_id: user.id
+                    }
+                }
+            }
+        });
+        const favorite = topic.favorites.find((f) => f.user_id === user.id);
+        if (favorite) {
+            await this.prismaService.favorite.update({
+                where: {
+                    id: favorite.id
+                },
+                data: {
+                    value: false
+                }
+            });
+        } else {
+            await this.prismaService.favorite.create({
+                data: {
+                    topic_id: topic.id,
+                    user_id: user.id,
+                    value: false
+                }
+            });
+        }
+        return pick(topic, ['id', 'title', 'display_title', 'image_url']);
     }
 }

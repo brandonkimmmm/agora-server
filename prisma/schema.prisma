@@ -105,7 +105,7 @@ model Favorite {
     post_id    Int?
     topic      Topic?   @relation(fields: [topic_id], references: [id], onDelete: Cascade)
     topic_id   Int?
-    value      Int
+    value      Boolean  @default(false)
     created_at DateTime @default(now())
     updated_at DateTime @updatedAt
 
