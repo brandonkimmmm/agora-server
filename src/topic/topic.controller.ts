@@ -13,9 +13,15 @@ import {
 } from '@nestjs/common';
 import { toUpper } from 'lodash';
 import { JwtGuard } from 'src/auth/jwt/jwt.guard';
+import { OptionalJwtGuard } from 'src/auth/jwt/optional-jwt.guard';
 import { ReqUser } from 'src/shared/decorators/req-user.decorator';
 import { SerializedUser } from 'src/shared/types/user.type';
-import { GetTopicsDTO, ParamTopicTitleDTO, PostTopicDTO } from './dto';
+import {
+    GetTopicsAvailableDTO,
+    GetTopicsDTO,
+    ParamTopicTitleDTO,
+    PostTopicDTO
+} from './dto';
 import { TopicTitleParamPipe } from './pipes/topic-title-param.pipe';
 import { TopicService } from './topic.service';
 
@@ -28,6 +34,15 @@ export class TopicController {
     @Get()
     async getTopics(@Query() dto: GetTopicsDTO) {
         return this.topicService.findTopics(dto);
+    }
+
+    @Get('available')
+    @UseGuards(OptionalJwtGuard)
+    async getTopicsAvailable(
+        @Query() dto: GetTopicsAvailableDTO,
+        @ReqUser() reqUser?: SerializedUser
+    ) {
+        return this.topicService.findAvailableTopics(dto, reqUser);
     }
 
     @Post()

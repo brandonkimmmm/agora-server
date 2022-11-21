@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { pick, toUpper } from 'lodash';
+import { omit, pick, toUpper } from 'lodash';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SerializedUser } from 'src/shared/types/user.type';
-import { GetTopicsDTO, PostTopicDTO } from './dto';
+import { GetTopicsAvailableDTO, GetTopicsDTO, PostTopicDTO } from './dto';
 
 @Injectable()
 export class TopicService {
@@ -17,6 +17,56 @@ export class TopicService {
             where: { title }
         });
         return count === 1;
+    }
+
+    async findAvailableTopics(
+        { search }: GetTopicsAvailableDTO,
+        user: SerializedUser
+    ) {
+        const where: Prisma.TopicWhereInput = {};
+
+        if (search) {
+            where.OR = [
+                {
+                    title: {
+                        contains: search
+                    }
+                },
+                {
+                    display_title: {
+                        contains: search
+                    }
+                }
+            ];
+        }
+
+        const topics = await this.prismaService.topic.findMany({
+            select: {
+                id: true,
+                title: true,
+                display_title: true,
+                image_url: true,
+                favorites: {
+                    where: {
+                        user_id: user.id
+                    },
+                    select: {
+                        value: true
+                    }
+                }
+            }
+        });
+
+        return topics.map((t) => {
+            return {
+                ...omit(t, 'favorites'),
+                subscribed: user
+                    ? t.favorites[0]
+                        ? t.favorites[0].value
+                        : false
+                    : undefined
+            };
+        });
     }
 
     async findTopics({ limit, page, display_title }: GetTopicsDTO) {
