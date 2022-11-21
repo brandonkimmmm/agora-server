@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { toUpper } from 'lodash';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SerializedUser } from 'src/shared/types/user.type';
-import { GetPostCommentsDTO, GetPostsDTO } from './dto';
+import { GetPostCommentsDTO, GetPostsDTO, PostPostDTO } from './dto';
 
 @Injectable()
 export class PostService {
@@ -90,6 +90,72 @@ export class PostService {
         return {
             count,
             data
+        };
+    }
+
+    async createPost(
+        { topic_title, body, media_url, link_url, title }: PostPostDTO,
+        user: SerializedUser
+    ) {
+        const post = await this.prismaService.post.create({
+            data: {
+                title,
+                body,
+                media_url,
+                link_url,
+                topic: {
+                    connect: {
+                        title: topic_title
+                    }
+                },
+                user: {
+                    connect: {
+                        id: user.id
+                    }
+                },
+                votes: {
+                    create: {
+                        user: {
+                            connect: {
+                                id: user.id
+                            }
+                        },
+                        value: 1
+                    }
+                }
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        username: true
+                    }
+                },
+                _count: {
+                    select: {
+                        comments: true
+                    }
+                },
+                topic: true,
+                votes: user
+                    ? {
+                          where: {
+                              user_id: user.id
+                          },
+                          select: {
+                              value: true
+                          }
+                      }
+                    : false
+            }
+        });
+
+        return {
+            ...post,
+            _sum: {
+                votes: 1
+            },
+            user_vote: 1
         };
     }
 

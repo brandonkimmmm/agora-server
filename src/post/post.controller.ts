@@ -1,8 +1,10 @@
 import {
+    Body,
     Controller,
     Get,
     Logger,
     Param,
+    Post,
     Put,
     Query,
     UseGuards,
@@ -13,12 +15,14 @@ import { OptionalJwtGuard } from 'src/auth/jwt/optional-jwt.guard';
 import { ReqUser } from 'src/shared/decorators/req-user.decorator';
 import { SerializedUser } from 'src/shared/types/user.type';
 import { TopicIdQueryPipe } from 'src/topic/pipes/topic-id-query.pipe';
+import { TopicTitleBodyPipe } from 'src/topic/pipes/topic-title-body.pipe';
 import { TopicTitleQueryPipe } from 'src/topic/pipes/topic-title-query.pipe';
 import {
     GetPostCommentsDTO,
     GetPostsDTO,
     ParamCommentIdDTO,
-    ParamPostIdDTO
+    ParamPostIdDTO,
+    PostPostDTO
 } from './dto';
 import { CommentIdParamPipe } from './pipes/comment-id-param.pipe';
 import { PostIdParamPipe } from './pipes/post-id-param.pipe';
@@ -50,6 +54,16 @@ export class PostController {
         @ReqUser() reqUser?: SerializedUser
     ) {
         return this.postService.findPostComments(post_id, dto, reqUser);
+    }
+
+    @Post()
+    @UseGuards(JwtGuard)
+    @UsePipes(TopicTitleBodyPipe)
+    async postPost(
+        @ReqUser() reqUser: SerializedUser,
+        @Body() dto: PostPostDTO
+    ) {
+        return this.postService.createPost(dto, reqUser);
     }
 
     @Put(':post_id/vote/up')
