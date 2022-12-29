@@ -20,10 +20,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
         const ctx = host.switchToHttp();
 
         let httpStatus: number;
+        let message: any;
 
         if (exception instanceof HttpException) {
             httpStatus = exception.getStatus();
+            message = (exception.getResponse() as any).message[0];
         } else {
+            message = (exception as any).message;
             const splitMessage = (exception as any).message.split(' ');
             if (
                 splitMessage[0] === 'No' &&
@@ -37,7 +40,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
         const responseBody = {
             statusCode: httpStatus,
-            message: (exception as any).message || 'Internal server error',
+            message: message || 'Internal server error',
             timestamp: new Date().toISOString(),
             path: httpAdapter.getRequestUrl(ctx.getRequest())
         };

@@ -37,5 +37,5 @@ export class PostPostDTO {
     @IsString()
     @IsNotEmpty()
     @MaxLength(300)
-    readonly title?: string;
+    readonly title: string;
 }
