@@ -18,7 +18,7 @@
 		"start:prod": "node dist/main",
 		"lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
 		"db:migrate": "prisma migrate deploy",
-		"db:seed": "prisma db seed && ts-node prisma/seeders/dummy.ts",
+		"db:seed": "prisma db seed && ts-node prisma/seeders/dummy/index.ts",
 		"test": "jest",
 		"test:watch": "jest --watch",
 		"test:cov": "jest --coverage",
